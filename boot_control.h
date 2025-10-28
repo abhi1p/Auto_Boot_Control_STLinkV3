@@ -193,6 +193,7 @@ private:
     QStringList m_cmdlist;
     QProcess m_process;
     QString m_binDir;
+    bool m_stlinkBridgeConnected;
     quint8 m_uartAddr=0xAA;
     bool m_samePort=false;
     QString m_serialPort;

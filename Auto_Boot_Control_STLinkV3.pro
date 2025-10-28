@@ -2,13 +2,13 @@ QT       += core gui serialport bluetooth printsupport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG += c++17
+CONFIG += c++17 #console
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 DEFINES += PROGRAM_NAME=\\\"AutoBootControl\\\"
-
+TARGET=AutoBootControl
 # Only define in release builds
 CONFIG(release, debug|release) {
     DEFINES += QT_NO_INFO_OUTPUT
@@ -17,7 +17,7 @@ CONFIG(release, debug|release) {
     DEFINES += QT_NO_WARNING_OUTPUT
 
 }
-
+RC_FILE = windows_icon.rc
 SOURCES += \
     STLink_Bridge/ErrLog.cpp \
     STLink_Bridge/bridge.cpp \
@@ -76,10 +76,14 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
-    STLink_Bridge/STLinkUSBDriver.dll
+    STLink_Bridge/STLinkUSBDriver.dll \
+    windows_icon.rc
 
 win32:CONFIG(release, debug|release): LIBS += -L'C:/Program Files/IVI Foundation/VISA/Win64/Lib_x64/msc/' -lvisa64
 else:win32:CONFIG(debug, debug|release): LIBS += -L'C:/Program Files/IVI Foundation/VISA/Win64/Lib_x64/msc/' -lvisa64
 
 INCLUDEPATH += 'C:/Program Files/IVI Foundation/VISA/Win64/Include'
 DEPENDPATH += 'C:/Program Files/IVI Foundation/VISA/Win64/Include'
+
+RESOURCES += \
+    Icons.qrc

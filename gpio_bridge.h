@@ -21,8 +21,8 @@ signals:
     void connectedToBridge(bool connected);
 
 public slots:
-    void GPIOBridgeInit(QMap<QString,int> pinMap);
-    void connectToBridge(QMap<QString,int> pinMap);
+    bool GPIOBridgeInit(QMap<QString,int> pinMap);
+    bool connectToBridge(QMap<QString,int> pinMap);
     Brg_StatusT GPIOInitTest();
     void readGPIO();
     Brg_GpioValT readPin(int pinNo);

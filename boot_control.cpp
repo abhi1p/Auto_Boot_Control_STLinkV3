@@ -114,7 +114,7 @@ void Boot_Control::startAutoBoot(bool toStart, Parameters_t &parameters)
         m_parameters=parameters;
         qInfo()<<"Dummy run enabled: "<<m_parameters.dummyRunEnabled;
         qInfo()<<"Serial port: "<<m_parameters.serialPort;
-        m_GPIOBridge.GPIOBridgeInit(m_GPIOPinMap);
+        m_stlinkBridgeConnected=m_GPIOBridge.GPIOBridgeInit(m_GPIOPinMap);
         m_PCBCount=1;
         m_serialPort=parameters.serialPort;
         m_pdf.header=m_parameters.testHeaderInfo;
@@ -133,29 +133,29 @@ void Boot_Control::autoBootExecute()
         m_deviceDetails.clear();
     }
     emit openSerialPort(false);
-    QString str=QString("Waiting for PCB ")+QString::number(m_PCBCount)+QString(" to be connected");
-    emit log(str);
-    // while(!m_GPIOBridge.validVcc()) // wait till VCC reads 3V
-    // {
-    //     QThread::msleep(200);
-    // }
+    if(m_stlinkBridgeConnected)
+    {
+        QString str=QString("Waiting for PCB ")+QString::number(m_PCBCount)+QString(" to be connected");
+        emit log(str);
+        // while(!m_GPIOBridge.validVcc()) // wait till VCC reads 3V
+        // {
+        //     QThread::msleep(200);
+        // }
 
-    // while(!m_GPIOBridge.readPin(m_GPIOPinMap["Connect"])) //wait till pcb is connected
-    // {
-    //     QThread::msleep(200);
-    // }
-    m_timer.setSingleShot(false);
-    disconnect(&m_timer,&QTimer::timeout,0,0);
-    connect(&m_timer,&QTimer::timeout,this,&Boot_Control::detectPCBConnection,Qt::QueuedConnection);
-    m_timer.start(m_GPIODetectDelay);
+        // while(!m_GPIOBridge.readPin(m_GPIOPinMap["Connect"])) //wait till pcb is connected
+        // {
+        //     QThread::msleep(200);
+        // }
+        m_timer.setSingleShot(false);
+        disconnect(&m_timer,&QTimer::timeout,0,0);
+        connect(&m_timer,&QTimer::timeout,this,&Boot_Control::detectPCBConnection,Qt::QueuedConnection);
+        m_timer.start(m_GPIODetectDelay);
+    }
+    else
+    {
+        checkMCUBootloaderMode();
+    }
 
-
-
-
-
-
-
-    //m_PCBCount++;
 }
 void Boot_Control::detectPCBConnection()
 {
@@ -301,7 +301,15 @@ void Boot_Control::checkMCUBootloaderModeCompleted()
     }
     else
     {
-        emit log("Failed to put MCU in bootloader mode");
+        if(m_stlinkBridgeConnected)
+        {
+            emit log("Failed to put MCU in bootloader mode");
+        }
+        else
+        {
+            emit log("MCU not in bootloader mode");
+        }
+
         emit autoBootFinishedSignal(); //end the boot for now
     }
 }
@@ -1632,12 +1640,21 @@ void Boot_Control::programDeviceIdExecuteCompleted()
 
 void Boot_Control::autoBootFinished()
 {
-    exitMCUFromBootloaderMode();
-    QString str= QString("Waiting for PCB ")+QString::number(m_PCBCount)+QString(" to disconnect");
-    emit log(str);
-    disconnect(&m_timer,&QTimer::timeout,0,0);
-    connect(&m_timer,&QTimer::timeout,this,&Boot_Control::detectPCBDisconnection,Qt::QueuedConnection);
-    m_timer.start(m_GPIODetectDelay);
+    if(m_stlinkBridgeConnected)
+    {
+        exitMCUFromBootloaderMode();
+        QString str= QString("Waiting for PCB ")+QString::number(m_PCBCount)+QString(" to disconnect");
+        emit log(str);
+        disconnect(&m_timer,&QTimer::timeout,0,0);
+        connect(&m_timer,&QTimer::timeout,this,&Boot_Control::detectPCBDisconnection,Qt::QueuedConnection);
+        m_timer.start(m_GPIODetectDelay);
+    }
+    else
+    {
+        QString str= QString("Restart after placing MCU in boot mode");
+        emit log(str);
+    }
+
 }
 
 void Boot_Control::receivedCommand(QString command)

@@ -16,7 +16,7 @@ GPIO_Bridge::~GPIO_Bridge()
     DisconnectToBridge();
 }
 
-void GPIO_Bridge::GPIOBridgeInit(QMap<QString, int> pinMap)
+bool GPIO_Bridge::GPIOBridgeInit(QMap<QString, int> pinMap)
 {
     //Brg* pBrg = NULL;
     //STLinkInterface *m_pStlinkIf = NULL;
@@ -48,13 +48,14 @@ void GPIO_Bridge::GPIOBridgeInit(QMap<QString, int> pinMap)
         qInfo()<<"STLinkUSBDriver library (dll) loaded";
     }
 
-    connectToBridge(pinMap);
+    bool status=connectToBridge(pinMap);
 
+    return status;
 
 
 }
 
-void GPIO_Bridge::connectToBridge(QMap<QString, int> pinMap)
+bool GPIO_Bridge::connectToBridge(QMap<QString, int> pinMap)
 {
     Brg_StatusT brgStat = BRG_NO_ERR;
     int firstDevNotInUse=-1;
@@ -86,6 +87,11 @@ void GPIO_Bridge::connectToBridge(QMap<QString, int> pinMap)
             // m_timer.setInterval(2000);
             // m_timer.start();
             // qInfo()<<"Read GPIO timer started";
+            return true;
+        }
+        else
+        {
+            return false;
         }
 
     }
@@ -93,8 +99,9 @@ void GPIO_Bridge::connectToBridge(QMap<QString, int> pinMap)
     {
         //qInfo()<<"Connection error: "<<brgStat;
         emit connectedToBridge(false);
+        return false;
     }
-    log(brgStat);
+    // log(brgStat);
 }
 
 void GPIO_Bridge::log(Brg_StatusT status)
